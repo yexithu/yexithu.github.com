@@ -38,6 +38,10 @@
       #startbtn {
         margin-top: 20px;
       }
+
+      .btn-box {
+        margin-bottom: 20px;
+      }
     </style>
   </head>
   <body>
@@ -68,8 +72,13 @@
         </div>
       </div>
     </div>
-
-    <button id="startbtn" class="btn btn-success btn-large" type="button">Start</button>
+    
+    <div class="btn-box">
+      <button id="startbtn" class="btn btn-success btn-large" type="button">Start</button> 
+      </div>
+    <divclass="btn-box">
+      <button id="respbtn" class="btn btn-success btn-large" type="button">Response Only</button> 
+      </div>    
     <div>
       <audio id="audio-prepare">
         <source src="../audio/speaking_prepare.mp3">
@@ -188,6 +197,12 @@
         setIndex = $('input[name=time]:checked').val();
         clear();        
         startTiming();
+      });
+
+      $("#respbtn").click(function () {
+        setIndex = $('input[name=time]:checked').val();
+        clear();
+        afterPrepare();
       });
     </script>
   </body>
