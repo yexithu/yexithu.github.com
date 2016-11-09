@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title> Speaking Timing Tool </title>
+    <meta charset="utf-8">
+    <link href="../css/bootstrap.min.css" rel="stylesheet" >
+    <style type="text/css">
+      body {
+        text-align: center;
+      }
+      .radio {
+        display: block;
+        margin: 10px;
+      }
+      #time-pane * {
+        padding: 0;
+        margin: 0;
+        border: 0;
+      }
+      #time-pane {
+        margin-top: 20px;
+        margin-left: 20%;
+        width: 60%;
+        border: 2px solid grey;
+      }
+      #hint {
+        background-color: gray;
+      }
+      #progress-outter {
+        height: 50px;
+        background-color: #e0e0e0;
+      }
+      #progress-inner {
+        height: 100%;
+        width: 0;
+        background-color: limegreen;
+      }
+      #startbtn {
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+
+    <div>
+      <h2> Select Time </h2>
+      <div>
+        <label>
+          <input type="radio" name="time" value="0" checked>
+          15 - 45
+        </label>
+        <label>
+          <input type="radio" name="time" value="1">
+          30 - 60
+        </label>
+        <label>
+          <input type="radio" name="time" value="2">
+          20 - 60
+        </label>
+      </div>
+    </div>
+
+    <div id="time-pane">
+      <h3 id="hint">Prepare your response</h3>
+      <h3 id="time">00:00</h3>
+      <div id="progress-outter">
+        <div id="progress-inner">
+        </div>
+      </div>
+    </div>
+
+    <button id="startbtn" class="btn btn-success btn-large" type="button">Start</button>
+    <div>
+      <audio id="audio-prepare">
+        <source src="../audio/speaking_prepare.mp3">
+      </audio>
+      <audio id="audio-beep">
+        <source src="../audio/speaking_beep.mp3">
+      </audio>
+      <audio id="audio-response">
+        <source src="../audio/speaking_speak.mp3">
+      </audio>
+
+    </div>
+    <script src="../js/bootstrap.min.js"></script>
+    <script src="../js/jquery.min.js"></script>
+    <script>
+      var timeSet = [[15, 45], [30, 60], [20, 60]];
+      var setIndex = 0;
+      var preTime = 0;
+      var ansTime = 0;
+      var timeOut = null;
+      var status = 1;
+
+      function startTiming() {
+        var prepareTime = timeSet[setIndex][0];
+        var timeStr = num2time(prepareTime);
+        $("#time").text(timeStr);
+        $("#audio-prepare").get(0).play();
+        $("#progress-inner").stop(true, true);
+        $("#progress-inner").css("width", "0px");
+        $("#hint").text("Prepare your response");
+
+        timeOut = setTimeout(function () {
+          afterPrepareAudio();
+        }, 2500);
+      }
+      
+      function afterPrepareAudio() {
+        $("#audio-beep").get(0).play();
+        timeOut = setTimeout(function () {
+          prepare();
+        }, 500);
+      }
+
+      function prepare() {
+        var prepareTime = timeSet[setIndex][0];
+        timeLoop(prepareTime, prepareTime);
+      }
+
+      function num2time(now) {
+        var timeStr = now < 10 ? "00:0" : "00:";
+        return timeStr + now.toString();
+      }
+
+      function timeLoop(max, now) {
+        var left = max - now;
+        var percent = (max - now + 1) * 100.0 / max;
+        var timeStr = num2time(now);
+        $("#time").text(timeStr);
+        $("#progress-inner").animate({width: percent + "%"}, 1000, 'linear')
+        if (now === 1) {
+          timeOut = setTimeout(function () {
+            $("#time").text("00:00");
+            if (status > 0) {
+              afterPrepare();
+            }
+          }, 1000);
+          return;
+        }
+        timeOut = setTimeout(function () {
+          timeLoop(max, now - 1)
+        }, 1000);
+      }
+      
+      function afterPrepare() {
+        $("#audio-response").get(0).play();
+        var responseTime = timeSet[setIndex][1];
+        var timeStr = num2time(responseTime);
+        $("#time").text(timeStr);
+        $("#progress-inner").stop(true, true);
+        $("#progress-inner").css("width", "0px");
+        $("#hint").text("Record your answer");
+        timeOut = setTimeout(function () {
+          afterResponsAudio();
+        }, 2500);
+      }
+
+      function afterResponsAudio() {
+        $("#audio-beep").get(0).play();
+        timeOut = setTimeout(function () {
+          response();
+        }, 500);
+      }
+
+      function response() {
+        status = 0;
+        var responseTime = timeSet[setIndex][1];
+        timeLoop(responseTime, responseTime);
+      }
+
+      function clear() {
+        if (timeOut) {
+          clearTimeout(timeOut);
+        }
+        status = 1;
+        $("#audio-prepare").get(0).pause();
+        $("#audio-prepare").get(0).currentTime = 0;
+        $("#audio-beep").get(0).pause();
+        $("#audio-beep").get(0).currentTime = 0;
+        $("#audio-response").get(0).pause();
+        $("#audio-response").get(0).currentTime = 0;
+        $("#progress-inner").stop(true, true);
+        $("#progress-inner").css("width", "0px");
+      }
+
+      $("#startbtn").click(function () {
+        setIndex = $('input[name=time]:checked').val();
+        clear();        
+        startTiming();
+      });
+    </script>
+  </body>
+</html>
